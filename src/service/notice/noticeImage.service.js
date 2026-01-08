@@ -8,6 +8,7 @@ const TABLE_ID = "notice_images";
 const NOTICE_BUCKET = "notice-images";
 
 exports.getImagesByNoticeId = async (noticeId) => {
+  console.log(noticeId, "noticeId-------");
   const { data, error } = await supabase
     .from(TABLE_ID)
     .select("image_url, sort_order")
@@ -20,6 +21,7 @@ exports.getImagesByNoticeId = async (noticeId) => {
       500,
       "NOTICE_IMAGE_LOAD_FAILED"
     );
+  console.log(data, "-----------------");
   return data || [];
 };
 

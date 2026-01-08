@@ -12,14 +12,24 @@ const NOTICE_BUCKET = "notice-images";
 const baseNoticeQuery = () => supabase.from("notices");
 
 // 공지사항 전체 조회
-exports.getAll = async () => {
-  const { data, error } = await baseNoticeQuery()
-    .select("*")
-    .order("created_at", { ascending: false });
+exports.getAll = async ({ page = 1, limit = 10 }) => {
+  const from = (page - 1) * limit;
+  const to = from + limit - 1;
+  const { data, error, count } = await baseNoticeQuery()
+    .select("*", { count: "exact" })
+    .order("created_at", { ascending: false })
+    .range(from, to);
+
   if (error) {
     throw error;
   }
-  return data;
+  return {
+    items: data,
+    page,
+    limit,
+    total: count,
+    totalpages: Math.ceil(count / limit),
+  };
 };
 
 // 공지사항 ID로 조회

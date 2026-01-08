@@ -4,7 +4,7 @@ const appError = require("../../utils/appError");
 exports.ensureNoticeExists = async (id) => {
   const { data, error } = await supabase
     .from("notices")
-    .select("id")
+    .select("id, title, content")
     .eq("id", id)
     .maybeSingle();
 
