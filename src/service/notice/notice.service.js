@@ -7,18 +7,34 @@ const {
   getImagesByNoticeId,
   createNoticeImages,
 } = require("./noticeImage.service");
+const {
+  applySearchFilter,
+  applyDateFilter,
+  getRange,
+} = require("../../utils/filters");
 
 const NOTICE_BUCKET = "notice-images";
 const baseNoticeQuery = () => supabase.from("notices");
 
 // 공지사항 전체 조회
-exports.getAll = async ({ page = 1, limit = 10 }) => {
-  const from = (page - 1) * limit;
-  const to = from + limit - 1;
-  const { data, error, count } = await baseNoticeQuery()
+exports.getAll = async ({ page = 1, limit = 10, q, from, to }) => {
+  const { from: fromIdx, to: toIdx } = getRange({
+    page,
+    limit,
+  });
+  let query = supabase
+    .from("notices")
     .select("*", { count: "exact" })
-    .order("created_at", { ascending: false })
-    .range(from, to);
+    .order("created_at", { ascending: false });
+
+  // 검색 필터
+  query = applySearchFilter(query, q, "title");
+  // 날짜 필터
+  query = applyDateFilter(query, { from, to });
+  // 페이징 처리
+  query.range(fromIdx, toIdx);
+
+  const { data, error, count } = await query;
 
   if (error) {
     throw error;

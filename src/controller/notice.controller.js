@@ -5,10 +5,13 @@ const successResponse = require("../utils/successResponse");
 exports.getAllNotices = asyncHandler(async (req, res) => {
   const page = Number(req.query.page || 1);
   const limit = Number(req.query.limit || 10);
-
+  const { q, to, from } = req.query;
   const notices = await noticeService.getAll({
     page,
     limit,
+    q,
+    to,
+    from,
   });
   successResponse(res, notices);
 });
