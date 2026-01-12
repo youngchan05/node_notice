@@ -10,3 +10,13 @@ exports.login = asyncHandler(async (req, res) => {
   });
   successResponse(res, user);
 });
+
+exports.signUp = asyncHandler(async (req, res) => {
+  const { name, email, password } = req.body;
+  const user = await authService.signUp({
+    name,
+    email,
+    password,
+  });
+  successResponse(res, user, "Success Create User");
+});

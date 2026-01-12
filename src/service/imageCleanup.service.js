@@ -1,4 +1,4 @@
-const supabaseAdmin = require("../config/supabase");
+const { supabaseAdmin } = require("../config/supabase");
 
 exports.deleteImagesByUrls = async ({ imageUrls = [], bucket }) => {
   if (!imageUrls || imageUrls.length === 0) return;

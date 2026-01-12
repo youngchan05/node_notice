@@ -1,4 +1,4 @@
-const supabase = require("../../config/supabase");
+const { supabase } = require("../../config/supabase");
 const { deleteImagesByUrls } = require("../imageCleanup.service");
 const appError = require("../../utils/appError");
 const { ensureNoticeExists } = require("./notice.guard");

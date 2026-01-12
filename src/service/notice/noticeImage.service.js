@@ -1,4 +1,4 @@
-const supabase = require("../../config/supabase");
+const { supabase } = require("../../config/supabase");
 const appError = require("../../utils/appError");
 const { uploadFiles } = require("../upload.service");
 

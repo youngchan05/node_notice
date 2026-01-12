@@ -1,7 +1,8 @@
 const jwt = require("jsonwebtoken");
-const supabase = require("../../config/supabase");
 const appError = require("../../utils/appError");
 const bcrypt = require("bcryptjs");
+const { v4: uuid } = require("uuid");
+const { supabase } = require("../../config/supabase");
 
 exports.login = async ({ email, password }) => {
   const { data: user, error: loginError } = await supabase
@@ -9,8 +10,6 @@ exports.login = async ({ email, password }) => {
     .select("*")
     .eq("email", email)
     .maybeSingle();
-
-  console.log(user, "---------------user");
 
   if (loginError || !user) throw appError("Invalid credentials1", 401);
 
@@ -23,7 +22,7 @@ exports.login = async ({ email, password }) => {
       userId: user.id,
       role: user.role,
     },
-    proccess.evn.JWT_SECRET,
+    process.env.JWT_SECRET,
     { expiresIn: "15m" }
   );
   const refreshToken = jwt.sign(
@@ -51,4 +50,52 @@ exports.login = async ({ email, password }) => {
       role: user.role,
     },
   };
+};
+
+exports.signUp = async ({ name, email, password }) => {
+  // 1. 필수값 체크
+  if (!name || !email || !password)
+    throw appError("Missing required fields", 400);
+
+  // 2. 이메일 형식 검사
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!emailRegex.test(email)) {
+    throw appError("Invalid email format", 400);
+  }
+
+  // 3. 비밀번호 정책
+  if (password.length < 8) {
+    throw appError("Password must be at least 8 characters", 400);
+  }
+  //  이메일 중복 체크
+  const { data: exiStingUser } = await supabase
+    .from("users")
+    .select("*")
+    .eq("email", email)
+    .maybeSingle();
+
+  // 중복 유저
+  if (exiStingUser) throw appError("Email already exists", 409);
+
+  // 비밀번호 생성
+  // bcrypt로 비밀번호 암호화 하기
+  const salt = bcrypt.genSaltSync(10);
+  const hashPassword = bcrypt.hashSync(password, salt);
+
+  // 사용자 생성
+  const { data: user, error } = await supabase
+    .from("users")
+    .insert({
+      id: uuid(),
+      email,
+      password: hashPassword,
+      name,
+      role: "user",
+    })
+    .select()
+    .maybeSingle();
+
+  if (error) throw appError("Failed Create user", 400);
+
+  return user;
 };
