@@ -33,10 +33,13 @@ exports.login = async ({ email, password }) => {
     { expiresIn: "14d" }
   );
 
-  const { error } = await supabase.from("users").update({
-    refresh_token: refreshToken,
-    refresh_token_exp: new Date(Date.now() + 14 * 86400000),
-  });
+  const { error } = await supabase
+    .from("users")
+    .update({
+      refresh_token: refreshToken,
+      refresh_token_exp: new Date(Date.now() + 14 * 86400000),
+    })
+    .eq("id", user.id);
 
   if (error) console.error("user token Update Fail!");
 
@@ -53,20 +56,6 @@ exports.login = async ({ email, password }) => {
 };
 
 exports.signUp = async ({ name, email, password }) => {
-  // 1. 필수값 체크
-  if (!name || !email || !password)
-    throw appError("Missing required fields", 400);
-
-  // 2. 이메일 형식 검사
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  if (!emailRegex.test(email)) {
-    throw appError("Invalid email format", 400);
-  }
-
-  // 3. 비밀번호 정책
-  if (password.length < 8) {
-    throw appError("Password must be at least 8 characters", 400);
-  }
   //  이메일 중복 체크
   const { data: exiStingUser } = await supabase
     .from("users")
