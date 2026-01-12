@@ -20,3 +20,13 @@ exports.signUp = asyncHandler(async (req, res) => {
   });
   successResponse(res, user, "Success Create User");
 });
+
+exports.retresh = asyncHandler(async (req, res) => {
+  const { refreshToken } = req.body;
+
+  const accessToken = await authService.refresh({
+    refreshToken,
+  });
+
+  successResponse(res, { accessToken }, "Success Token refresh");
+});

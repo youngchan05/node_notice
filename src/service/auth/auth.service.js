@@ -11,11 +11,11 @@ exports.login = async ({ email, password }) => {
     .eq("email", email)
     .maybeSingle();
 
-  if (loginError || !user) throw appError("Invalid credentials1", 401);
+  if (loginError || !user) throw appError("Invalid credentials", 401);
 
   const isMatch = await bcrypt.compare(password, user.password);
 
-  if (!isMatch) throw appError("Invalid credentials2", 401);
+  if (!isMatch) throw appError("Invalid credentials", 401);
 
   const accessToken = jwt.sign(
     {
@@ -87,4 +87,44 @@ exports.signUp = async ({ name, email, password }) => {
   if (error) throw appError("Failed Create user", 400);
 
   return user;
+};
+
+exports.refresh = ({ refreshToken }) => {
+  let payload;
+
+  try {
+    payload = jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET);
+  } catch (err) {
+    throw appError("Invalid refresh token", 401);
+  }
+
+  // 사용자 조회
+
+  const { data: user, error } = supabase
+    .from("users")
+    .select("*")
+    .eq("id", payload.userId);
+
+  if (error || !user) throw appError("Invlid refresh token", 401);
+
+  // DB 저장된  refresh token 비교
+
+  if (user.refreshToken !== refreshToken)
+    throw appError("Invalid refresh token", 401);
+
+  // refresh toekn 만료 시간 확인
+  if (new Date(user.refresh_token_exp) < new Date())
+    throw appError("Refresh token expired", 401);
+
+  // 새로운 access token 발급
+
+  const newAccessToken = jwt.sign(
+    {
+      userId: user.id,
+      role: user.role,
+    },
+    process.env.JWT_SECRET,
+    { expiresIn: "15m" }
+  );
+  return newAccessToken;
 };
