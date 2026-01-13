@@ -1,18 +1,22 @@
-const jwt = require("jsonwebtoken");
 const appError = require("../utils/appError");
+const { verifyAccessToken } = require("../utils/jwtToken");
 
 module.exports = (req, _, next) => {
   const authHeader = req.headers.authorization;
 
   //   토큰 없는 경우
-  if (!authHeader || !authHeader.startWith("Bearer ")) {
+  if (!authHeader || !authHeader.startsWith("Bearer ")) {
     return next(appError("Unauthorized", 401));
   }
 
   const token = authHeader.replace("Bearer ", "");
 
   try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const decoded = verifyAccessToken(token);
+
+    if (!decoded?.userId) {
+      return next(appError("Unauthorized", 401));
+    }
 
     req.user = {
       id: decoded.userId,

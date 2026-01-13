@@ -3,6 +3,11 @@ const appError = require("../../utils/appError");
 const bcrypt = require("bcryptjs");
 const { v4: uuid } = require("uuid");
 const { supabase } = require("../../config/supabase");
+const {
+  createToken,
+  createRefreshToken,
+  verifyRefreshToken,
+} = require("../../utils/jwtToken");
 
 exports.login = async ({ email, password }) => {
   const { data: user, error: loginError } = await supabase
@@ -17,21 +22,8 @@ exports.login = async ({ email, password }) => {
 
   if (!isMatch) throw appError("Invalid credentials", 401);
 
-  const accessToken = jwt.sign(
-    {
-      userId: user.id,
-      role: user.role,
-    },
-    process.env.JWT_SECRET,
-    { expiresIn: "15m" }
-  );
-  const refreshToken = jwt.sign(
-    {
-      userId: user.id,
-    },
-    process.env.JWT_REFRESH_SECRET,
-    { expiresIn: "14d" }
-  );
+  const accessToken = createToken(user);
+  const refreshToken = createRefreshToken(user);
 
   const { error } = await supabase
     .from("users")
@@ -89,18 +81,18 @@ exports.signUp = async ({ name, email, password }) => {
   return user;
 };
 
-exports.refresh = ({ refreshToken }) => {
+exports.refresh = async ({ refreshToken }) => {
   let payload;
 
   try {
-    payload = jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET);
+    payload = verifyRefreshToken(refreshToken);
   } catch (err) {
     throw appError("Invalid refresh token", 401);
   }
 
   // 사용자 조회
 
-  const { data: user, error } = supabase
+  const { data: user, error } = await supabase
     .from("users")
     .select("*")
     .eq("id", payload.userId);
@@ -109,7 +101,7 @@ exports.refresh = ({ refreshToken }) => {
 
   // DB 저장된  refresh token 비교
 
-  if (user.refreshToken !== refreshToken)
+  if (user.refresh_token !== refreshToken)
     throw appError("Invalid refresh token", 401);
 
   // refresh toekn 만료 시간 확인
@@ -118,13 +110,7 @@ exports.refresh = ({ refreshToken }) => {
 
   // 새로운 access token 발급
 
-  const newAccessToken = jwt.sign(
-    {
-      userId: user.id,
-      role: user.role,
-    },
-    process.env.JWT_SECRET,
-    { expiresIn: "15m" }
-  );
+  const newAccessToken = createToken(user);
+
   return newAccessToken;
 };
