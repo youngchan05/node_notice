@@ -1,12 +1,12 @@
-const jwt = require("jsonwebtoken");
 const appError = require("../../utils/appError");
 const bcrypt = require("bcryptjs");
 const { v4: uuid } = require("uuid");
 const { supabase } = require("../../config/supabase");
 const {
-  createToken,
+  createAccessToken,
   createRefreshToken,
   verifyRefreshToken,
+  REFRESH_TOKEN_EXP_DATE,
 } = require("../../utils/jwtToken");
 
 exports.login = async ({ email, password }) => {
@@ -22,14 +22,14 @@ exports.login = async ({ email, password }) => {
 
   if (!isMatch) throw appError("Invalid credentials", 401);
 
-  const accessToken = createToken(user);
+  const accessToken = createAccessToken(user);
   const refreshToken = createRefreshToken(user);
 
   const { error } = await supabase
     .from("users")
     .update({
       refresh_token: refreshToken,
-      refresh_token_exp: new Date(Date.now() + 14 * 86400000),
+      refresh_token_exp: REFRESH_TOKEN_EXP_DATE,
     })
     .eq("id", user.id);
 
@@ -45,6 +45,19 @@ exports.login = async ({ email, password }) => {
       role: user.role,
     },
   };
+};
+
+exports.logOut = async (id) => {
+  const { error } = await supabase
+    .from("users")
+    .update({
+      refresh_token: null,
+      refresh_token_exp: null,
+    })
+    .eq("id", id)
+    .maybeSingle();
+
+  if (error) throw appError("Logout failed", 400);
 };
 
 exports.signUp = async ({ name, email, password }) => {
@@ -91,7 +104,6 @@ exports.refresh = async ({ refreshToken }) => {
   }
 
   // 사용자 조회
-
   const { data: user, error } = await supabase
     .from("users")
     .select("*")
@@ -109,8 +121,17 @@ exports.refresh = async ({ refreshToken }) => {
     throw appError("Refresh token expired", 401);
 
   // 새로운 access token 발급
+  const newAccessToken = createAccessToken(user);
+  const newRefreshToken = createRefreshToken(user);
 
-  const newAccessToken = createToken(user);
+  const { error: refreshError } = await supabase
+    .from("user")
+    .update({
+      refresh_token: newRefreshToken,
+      refresh_token_exp: REFRESH_TOKEN_EXP_DATE,
+    })
+    .eq("id", user.id);
+  if (refreshError) console.error("Faild reFresh");
 
-  return newAccessToken;
+  return { accessToken: newAccessToken, refreshToken: newRefreshToken };
 };

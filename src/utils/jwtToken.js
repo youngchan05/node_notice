@@ -1,7 +1,11 @@
+const jwt = require("jsonwebtoken");
+
 const TOKEN_EXP = "15m"; //토큰 유효시간
 const REFRESH_TOKEN_EXP = "14d"; //리플래시 토큰 유효시간
+//토큰 만료시간 DATE
+const REFRESH_TOKEN_EXP_DATE = new Date(Date.now() + 14 * 86400000);
 
-const createToken = (user) => {
+const createAccessToken = (user) => {
   return jwt.sign(
     {
       userId: user.id,
@@ -30,8 +34,9 @@ const verifyAccessToken = (token) => {
 };
 
 module.exports = {
-  createToken,
+  createAccessToken,
   createRefreshToken,
   verifyRefreshToken,
   verifyAccessToken,
+  REFRESH_TOKEN_EXP_DATE,
 };

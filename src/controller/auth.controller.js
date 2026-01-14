@@ -11,6 +11,11 @@ exports.login = asyncHandler(async (req, res) => {
   successResponse(res, user);
 });
 
+exports.logOut = asyncHandler(async (req, res) => {
+  await authService.logOut(req.user.id);
+  successResponse(res, null, "Success LogOut");
+});
+
 exports.signUp = asyncHandler(async (req, res) => {
   const { name, email, password } = req.validated;
   const user = await authService.signUp({
@@ -21,12 +26,13 @@ exports.signUp = asyncHandler(async (req, res) => {
   successResponse(res, user, "Success Create User");
 });
 
-exports.retresh = asyncHandler(async (req, res) => {
+exports.refresh = asyncHandler(async (req, res) => {
   const { refreshToken } = req.body;
 
   const accessToken = await authService.refresh({
     refreshToken,
+    refreshToken,
   });
 
-  successResponse(res, { accessToken }, "Success Token refresh");
+  successResponse(res, { accessToken, refreshToken }, "Success Token refresh");
 });
