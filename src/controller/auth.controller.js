@@ -31,7 +31,6 @@ exports.refresh = asyncHandler(async (req, res) => {
 
   const accessToken = await authService.refresh({
     refreshToken,
-    refreshToken,
   });
 
   successResponse(res, { accessToken, refreshToken }, "Success Token refresh");

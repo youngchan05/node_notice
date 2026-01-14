@@ -107,7 +107,10 @@ exports.refresh = async ({ refreshToken }) => {
   const { data: user, error } = await supabase
     .from("users")
     .select("*")
-    .eq("id", payload.userId);
+    .eq("id", payload.userId)
+    .single();
+
+  console.log(user, "-------------user");
 
   if (error || !user) throw appError("Invlid refresh token", 401);
 
@@ -125,7 +128,7 @@ exports.refresh = async ({ refreshToken }) => {
   const newRefreshToken = createRefreshToken(user);
 
   const { error: refreshError } = await supabase
-    .from("user")
+    .from("users")
     .update({
       refresh_token: newRefreshToken,
       refresh_token_exp: REFRESH_TOKEN_EXP_DATE,
