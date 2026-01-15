@@ -17,7 +17,7 @@ exports.getImagesByNoticeId = async (noticeId) => {
 
   if (error)
     throw appError(
-      "Failed to load notice images",
+      "Failed   to load notice images",
       500,
       "NOTICE_IMAGE_LOAD_FAILED"
     );

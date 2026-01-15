@@ -57,7 +57,7 @@ exports.logOut = async (id) => {
     .eq("id", id)
     .maybeSingle();
 
-  if (error) throw appError("Logout failed", 400);
+  if (error) throw appError("Logout Failed ", 400);
 };
 
 exports.signUp = async ({ name, email, password }) => {
@@ -89,7 +89,7 @@ exports.signUp = async ({ name, email, password }) => {
     .select()
     .maybeSingle();
 
-  if (error) throw appError("Failed Create user", 400);
+  if (error) throw appError("Failed  Create user", 400);
 
   return user;
 };
@@ -109,8 +109,6 @@ exports.refresh = async ({ refreshToken }) => {
     .select("*")
     .eq("id", payload.userId)
     .single();
-
-  console.log(user, "-------------user");
 
   if (error || !user) throw appError("Invlid refresh token", 401);
 

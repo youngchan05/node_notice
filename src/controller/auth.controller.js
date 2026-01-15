@@ -1,4 +1,5 @@
 const authService = require("../service/auth/auth.service");
+const emailAuthService = require("../service/auth/eamilAuth.service");
 const asyncHandler = require("../utils/asyncHandler");
 const successResponse = require("../utils/successResponse");
 
@@ -34,4 +35,15 @@ exports.refresh = asyncHandler(async (req, res) => {
   });
 
   successResponse(res, { accessToken, refreshToken }, "Success Token refresh");
+});
+// 인증번호 발송
+exports.sendEmailCode = asyncHandler(async (req, res) => {
+  const { email, purpose } = req.body;
+
+  await emailAuthService.sendEmailCode({
+    email,
+    purpose,
+  });
+
+  successResponse(res, null, "Verification code sent");
 });

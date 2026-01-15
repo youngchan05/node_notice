@@ -80,7 +80,7 @@ exports.create = async ({ title, content, files }) => {
     .maybeSingle();
 
   // 공지사항 삽입 오류 처리
-  if (error) throw appError("Failed to create notice");
+  if (error) throw appError("Failed  to create notice");
 
   try {
     await createNoticeImages({
@@ -162,7 +162,7 @@ exports.delete = async (id) => {
   const { data, error } = await supabase.from("notices").delete().eq("id", id);
 
   if (error) {
-    throw appError("Failed to delete notice");
+    throw appError("Failed  to delete notice");
   }
 
   return data;
